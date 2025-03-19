@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.sqlite3
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# AWS Credentials
+*.env
+*.pem

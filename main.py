@@ -1,25 +1,31 @@
-from fastapi import FastAPI, Request, Form, UploadFile
+from fastapi import FastAPI, Request, UploadFile
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import boto3
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = FastAPI()
 
-# AWS Configuration
+# Load AWS Configuration from Environment Variables
 AWS_REGION = "ap-south-1"
-S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME")
+S3_BUCKET_NAME = os.environ.get("S3_BUCKET_NAME")
+AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY")
+AWS_SECRET_KEY = os.environ.get("AWS_SECRET_KEY")
 
+# Validate environment variables
+if not all([S3_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY]):
+    raise ValueError("Missing required AWS environment variables!")
+
+# Initialize S3 client
 s3_client = boto3.client(
     "s3",
-    aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
-    aws_secret_access_key=os.getenv("AWS_SECRET_KEY"),
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_KEY,
     region_name=AWS_REGION
 )
+
 print(f"Connected to S3 bucket: {S3_BUCKET_NAME}")
+
 # Templates setup
 templates = Jinja2Templates(directory="templates")
 

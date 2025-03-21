@@ -1,5 +1,5 @@
-# Use a smaller base image
-FROM python:3.10-alpine
+# Use a smaller base image with explicit platform
+FROM --platform=linux/amd64 python:3.10-alpine
 
 # Set working directory
 WORKDIR /app
@@ -21,7 +21,7 @@ ENV S3_BUCKET_NAME="" \
     AWS_ACCESS_KEY="" \
     AWS_SECRET_KEY="" \
     PYTHONUNBUFFERED=1 \
-    UVICORN_WORKERS=1 
+    UVICORN_WORKERS=1  
 
 # Run FastAPI with a single worker to reduce memory usage
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

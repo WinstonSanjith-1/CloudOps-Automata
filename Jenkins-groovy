@@ -84,7 +84,6 @@ pipeline {
                           -e AWS_S3_BUCKET=${AWS_S3_BUCKET} \
                           ${IMAGE_NAME}:latest
                         
-                        # Verify if the container is running
                         sleep 5
                         docker ps | grep ${CONTAINER_NAME} || (echo "Container failed to start!" && exit 1)
                         """

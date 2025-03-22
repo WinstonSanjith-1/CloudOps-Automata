@@ -15,6 +15,25 @@ pipeline {
             }
         }
 
+        stage('Terraform Init & Apply') {
+            steps {
+                script {
+                    withCredentials([
+                        string(credentialsId: 'AWS_ACCESS_KEY', variable: 'AWS_ACCESS_KEY_ID'),
+                        string(credentialsId: 'AWS_SECRET_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
+                    ]) {
+                        echo "Initializing and applying Terraform configuration..."
+                        
+                        sh """
+                        cd terraform
+                        terraform init
+                        terraform apply -auto-approve
+                        """
+                    }
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -50,14 +69,14 @@ pipeline {
                         echo "Deploying container on EC2..."
 
                         sh """
-                        # Stop and remove old container if exists
+                        
                         docker stop ${CONTAINER_NAME} || true
                         docker rm ${CONTAINER_NAME} || true
                         
-                        # Pull latest image
+                        
                         docker pull ${IMAGE_NAME}:latest
                         
-                        # Run the container
+                        
                         docker run -d --name ${CONTAINER_NAME} -p ${CONTAINER_PORT}:${CONTAINER_PORT} \
                           -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
                           -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \

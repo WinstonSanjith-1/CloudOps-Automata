@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/WinstonSanjith-1/Full-pipeline-on-AWS.git'
+                git branch: 'main', url: 'https://github.com/WinstonSanjith-1/CloudOps-Automata.git'
             }
         }
 

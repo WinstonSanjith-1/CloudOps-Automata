@@ -1,0 +1,77 @@
+pipeline {
+    agent any  
+
+    environment {
+        AWS_REGION = 'ap-south-1'
+        IMAGE_NAME = 'winstonsanjith/microservice' 
+        CONTAINER_NAME = 'microservice'
+        CONTAINER_PORT = '8000'
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git branch: 'main', url: 'https://github.com/WinstonSanjith-1/Full-pipeline-on-AWS.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    echo "Building Docker image..."
+                    sh "docker build --platform=linux/amd64 -t ${IMAGE_NAME}:latest ."
+                    echo "Docker image built successfully."
+                }
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'DOCKER_HUB_CREDENTIALS', usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+                        echo "Logging into Docker Hub..."
+                        sh 'echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin'
+
+                        echo "Pushing Docker image to Docker Hub..."
+                        sh "docker push ${IMAGE_NAME}:latest"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy on EC2') {
+            steps {
+                script {
+                    withCredentials([
+                        string(credentialsId: 'AWS_ACCESS_KEY', variable: 'AWS_ACCESS_KEY_ID'),
+                        string(credentialsId: 'AWS_SECRET_KEY', variable: 'AWS_SECRET_ACCESS_KEY'),
+                        string(credentialsId: 'AWS_S3_BUCKET', variable: 'AWS_S3_BUCKET')
+                    ]) {
+                        echo "Deploying container on EC2..."
+
+                        sh """
+                        # Stop and remove old container if exists
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                        
+                        # Pull latest image
+                        docker pull ${IMAGE_NAME}:latest
+                        
+                        # Run the container
+                        docker run -d --name ${CONTAINER_NAME} -p ${CONTAINER_PORT}:${CONTAINER_PORT} \
+                          -e AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+                          -e AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+                          -e AWS_REGION=${AWS_REGION} \
+                          -e AWS_S3_BUCKET=${AWS_S3_BUCKET} \
+                          ${IMAGE_NAME}:latest
+                        
+                        # Verify if the container is running
+                        sleep 5
+                        docker ps | grep ${CONTAINER_NAME} || (echo "Container failed to start!" && exit 1)
+                        """
+                    }
+                }
+            }
+        }
+    }
+}

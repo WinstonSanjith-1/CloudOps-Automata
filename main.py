@@ -6,13 +6,13 @@ import os
 
 app = FastAPI()
 
-# Load AWS Configuration from Environment Variables
-AWS_REGION = "ap-south-1"
-S3_BUCKET_NAME = os.environ.get("AWS_S3_BUCKET")  # Corrected env variable name
-AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY_ID")  # Corrected name
-AWS_SECRET_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")  # Corrected name
 
-# Validate environment variables
+AWS_REGION = "ap-south-1"
+S3_BUCKET_NAME = os.environ.get("AWS_S3_BUCKET")  
+AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY_ID") 
+AWS_SECRET_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
+
+
 missing_vars = [var for var, val in {
     "AWS_S3_BUCKET": S3_BUCKET_NAME,
     "AWS_ACCESS_KEY_ID": AWS_ACCESS_KEY,
@@ -22,9 +22,9 @@ missing_vars = [var for var, val in {
 if missing_vars:
     print(f"⚠️ Warning: Missing required AWS environment variables: {', '.join(missing_vars)}")
     print("Ensure the environment variables are set before using AWS services.")
-    s3_client = None  # Prevents crashes if S3 is used without proper setup
+    s3_client = None  
 else:
-    # Initialize S3 client
+    
     s3_client = boto3.client(
         "s3",
         aws_access_key_id=AWS_ACCESS_KEY,
@@ -33,7 +33,7 @@ else:
     )
     print(f"✅ Connected to S3 bucket: {S3_BUCKET_NAME}")
 
-# Templates setup
+
 templates = Jinja2Templates(directory="templates")
 
 
